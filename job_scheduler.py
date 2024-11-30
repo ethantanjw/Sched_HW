@@ -332,7 +332,29 @@ class JobScheduler():
     def add_costs(self):
         model = self.model
         # BEGIN STUDENT CODE
+        total_costs = []
+
+        for job in self.jobs:
+            for task in job.tasks:
+                for tm in task.task_machines:
+                    key = self._key(job, task, tm.machine)
+                    energy_cost = tm.machine.energy_cost * tm.duration
+                    total_costs.append(energy_cost * self.scheduleds[key])
+
+        for job in self.jobs:
+            for task in job.tasks:
+                required_parts = [p.name for p in task.parts]
+                for part in self.parts:
+                    if part.name in required_parts:
+                        part_count = required_parts.count(part.name)
+                        for tm in task.task_machines:
+                            key = self._key(job, task, tm.machine)
+                            part_cost = part_count * part.cost
+                            total_costs.append(part_cost * self.scheduleds[key])
+
+        model.Add(self.cost == sum(total_costs))
         # END STUDENT CODE
+
 
     def add_optimization(self, add_costs):
         model = self.model
